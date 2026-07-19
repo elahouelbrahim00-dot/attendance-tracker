@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سجل الحضور والأجرة</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0B4F6C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&family=Tajawal:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --bg:#EEF1F5;
+    --surface:#FFFFFF;
+    --surface-2:#F6F8FA;
+    --ink:#101828;
+    --ink-soft:#5D6B82;
+    --ink-faint:#98A2B3;
+    --line:#E3E7EE;
+    --primary:#0B4F6C;
+    --primary-dark:#083548;
+    --primary-tint:#E7F0F4;
+    --in:#12805C;
+    --in-bg:#E7F6EF;
+    --in-line:#B9E4CE;
+    --out:#B42318;
+    --out-bg:#FDECEA;
+    --out-line:#F5C2BE;
+    --debt:#B54708;
+    --debt-bg:#FFF6E7;
+    --debt-line:#F3D8A6;
+    --shadow-sm:0 1px 2px rgba(16,24,40,.04);
+    --shadow-md:0 4px 14px rgba(16,24,40,.07);
+    --radius-lg:16px;
+    --radius-md:12px;
+    --radius-sm:8px;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 400px at 50% -120px, rgba(11,79,108,.10), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    direction:rtl;
+    padding-bottom:60px;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{ font-family:'Cairo','Segoe UI',Tahoma,Arial,sans-serif; }
+  .mono{ font-family:'IBM Plex Mono', 'Courier New', monospace; }
+
+  /* ---------- Topbar ---------- */
+  .topbar{
+    background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color:#fff; padding:18px 20px; box-shadow:var(--shadow-md);
+  }
+  .topbar-inner{ max-width:680px; margin:0 auto; display:flex; align-items:center; gap:14px; }
+  .brand-mark{
+    width:44px; height:44px; border-radius:12px; flex-shrink:0;
+    background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.22);
+    display:flex; align-items:center; justify-content:center; color:#fff;
+  }
+  .brand-title{ font-size:18px; font-weight:900; letter-spacing:.2px; }
+  .brand-sub{ font-size:12px; color:rgba(255,255,255,.75); margin-top:2px; font-weight:500; }
+  .brand-badge{
+    margin-inline-start:auto; font-size:11px; background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.22); padding:5px 10px; border-radius:20px;
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+  }
+  .dot{ width:6px; height:6px; border-radius:50%; background:#5EEAA0; }
+
+  .wrap{ max-width:680px; margin:0 auto; padding:22px 18px 0; }
+
+  /* ---------- Generic form controls ---------- */
+  .row{ display:flex; gap:10px; }
+  input{
+    font-family:inherit; border:1.5px solid var(--line); border-radius:var(--radius-sm);
+    padding:11px 13px; font-size:14px; background:var(--surface); color:var(--ink);
+    outline:none; width:100%; transition:border-color .15s, box-shadow .15s;
+  }
+  input:focus{ border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-tint); }
+  input::placeholder{ color:var(--ink-faint); }
+  input[type=number]{ font-family:'IBM Plex Mono', monospace; }
+
+  button{
+    font-family:'Tajawal',inherit; cursor:pointer; border:none; border-radius:var(--radius-sm);
+    font-weight:700; font-size:13.5px; padding:10px 16px;
+    display:inline-flex; align-items:center; justify-content:center; gap:7px;
+    transition:transform .06s, box-shadow .15s, background .15s, border-color .15s;
+  }
+  button:active{ transform:translateY(1px); }
+  .btn-primary{ background:var(--primary); color:#fff; box-shadow:var(--shadow-sm); }
+  .btn-primary:hover{ background:var(--primary-dark); }
+  .btn-outline{ background:#fff; border:1.5px solid var(--line); color:var(--ink); }
+  .btn-outline:hover{ border-color:var(--primary); color:var(--primary); }
+  .btn-green{ background:var(--in); color:#fff; }
+  .btn-red{ background:var(--out); color:#fff; }
+  .btn-full{ width:100%; }
+  .btn-sm{ padding:8px 12px; font-size:12.5px; }
+
+  .icon-btn{
+    background:none; border:none; padding:6px; border-radius:8px;
+    color:var(--ink-faint); display:inline-flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:hover{ color:var(--ink); background:var(--surface-2); }
+  .icon-btn.danger:hover{ color:var(--out); background:var(--out-bg); }
+
+  /* ---------- Section titles ---------- */
+  .section-title{
+    display:flex; align-items:center; gap:8px; font-weight:800; margin-bottom:12px;
+    font-size:14px; color:var(--ink); font-family:'Cairo',inherit;
+  }
+  .section-title .badge{
+    background:var(--primary-tint); color:var(--primary); font-size:11.5px;
+    font-weight:700; padding:2px 9px; border-radius:20px; margin-inline-start:auto;
+    font-family:'Tajawal',inherit;
+  }
+
+  /* ---------- Worker list ---------- */
+  .worker-list{ display:flex; flex-direction:column; gap:8px; margin-top:14px; margin-bottom:28px; }
+  .worker-item{
+    display:flex; align-items:center; gap:4px;
+    background:var(--surface); border:1.5px solid var(--line); border-radius:var(--radius-md);
+    padding:12px 14px; box-shadow:var(--shadow-sm); transition:box-shadow .15s, border-color .15s;
+  }
+  .worker-item:hover{ box-shadow:var(--shadow-md); border-color:#D3DAE4; }
+  .worker-item .name-btn{
+    flex:1; background:none; border:none; padding:6px 2px; cursor:pointer;
+    display:flex; justify-content:space-between; align-items:center;
+    text-align:right; font-weight:800; font-size:14.5px; color:var(--ink); font-family:'Cairo',inherit;
+  }
+  .worker-item .meta{ font-size:11.5px; color:var(--ink-faint); font-weight:500; font-family:'IBM Plex Mono',monospace; }
+  .avatar{
+    width:34px; height:34px; border-radius:9px; background:var(--primary-tint); color:var(--primary);
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px;
+    flex-shrink:0; font-family:'Cairo',inherit;
+  }
+  .worker-row-flex{ display:flex; align-items:center; gap:10px; flex:1; }
+
+  /* ---------- Cards ---------- */
+  .card{
+    background:var(--surface); border:1.5px solid var(--line); border-radius:var(--radius-lg);
+    padding:18px; margin-bottom:22px; box-shadow:var(--shadow-sm);
+  }
+  .card-title{
+    display:flex; align-items:center; gap:8px; font-weight:800; font-size:14px;
+    margin-bottom:14px; color:var(--ink); font-family:'Cairo',inherit;
+  }
+  .label{ font-size:12px; font-weight:700; color:var(--ink-soft); display:block; margin-bottom:6px; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+  .box-in{ background:var(--in-bg); border:1.5px solid var(--in-line); border-radius:var(--radius-md); padding:11px; }
+  .box-out{ background:var(--out-bg); border:1.5px solid var(--out-line); border-radius:var(--radius-md); padding:11px; }
+  .box-in .label, .box-out .label{ display:flex; align-items:center; gap:5px; margin-bottom:7px; }
+  .box-in .label{ color:var(--in); }
+  .box-out .label{ color:var(--out); }
+  .box-in input{ border-color:#8FD0AE; color:var(--in); font-weight:700; }
+  .box-out input{ border-color:#EFA79F; color:var(--out); font-weight:700; }
+
+  .diff-text{ text-align:center; font-size:13px; color:var(--ink-soft); margin-top:12px; }
+  .diff-text b{ color:var(--ink); font-family:'IBM Plex Mono',monospace; }
+
+  /* ---------- Records ---------- */
+  .records{ display:flex; flex-direction:column; gap:6px; margin-bottom:22px; }
+  .rec-row{
+    display:flex; align-items:center; justify-content:space-between; gap:6px;
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    padding:9px 13px; font-size:13px; box-shadow:var(--shadow-sm);
+  }
+  .rec-row .t-date{ color:var(--ink-faint); font-size:11.5px; font-family:'IBM Plex Mono',monospace; min-width:78px; }
+  .rec-row .t-in{ color:var(--in); font-weight:700; }
+  .rec-row .t-out{ color:var(--out); font-weight:700; }
+  .rec-row .t-hours{ font-weight:800; font-family:'IBM Plex Mono',monospace; color:var(--ink); }
+
+  /* ---------- KPI / Financial summary ---------- */
+  .fin-card{
+    background:var(--surface); border:1.5px solid var(--line); border-radius:var(--radius-lg);
+    overflow:hidden; box-shadow:var(--shadow-md); margin-bottom:20px;
+  }
+  .fin-header{
+    background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color:#fff; padding:16px 18px; display:flex; align-items:center; gap:8px;
+    font-weight:800; font-size:14px; font-family:'Cairo',inherit;
+  }
+  .fin-body{ padding:18px; }
+  .kpi-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px; }
+  .kpi-tile{
+    display:none; flex-direction:column; gap:4px; background:var(--surface-2);
+    border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 10px; text-align:center;
+  }
+  .kpi-tile.always{ display:flex; }
+  .kpi-label{ font-size:10.5px; color:var(--ink-soft); font-weight:700; }
+  .kpi-value{ font-size:16px; font-weight:800; color:var(--ink); font-family:'IBM Plex Mono',monospace; }
+  .kpi-value.accent-net{ color:var(--in); }
+
+  .fin-divider{ border:none; border-top:1px dashed var(--line); margin:16px 0; }
+  .fin-section-label{
+    font-size:12px; font-weight:800; color:var(--debt); display:flex; align-items:center; gap:6px;
+    margin-bottom:10px;
+  }
+  .fin-row-inline{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--debt-bg); border:1.5px solid var(--debt-line); border-radius:var(--radius-md);
+    padding:12px 14px; margin-top:12px;
+  }
+  .fin-row-inline .fr-label{ font-size:13px; font-weight:700; color:var(--ink); }
+  .fin-row-inline .fr-value{ font-size:17px; font-weight:900; color:var(--debt); font-family:'IBM Plex Mono',monospace; }
+
+  /* ---------- Toolbar / detail header ---------- */
+  .toolbar{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .back-link{
+    background:none; border:none; font-weight:700; color:var(--ink-soft); font-size:13.5px;
+    margin-bottom:16px; padding:0; display:inline-flex; align-items:center; gap:6px;
+  }
+  .back-link:hover{ color:var(--primary); }
+  .detail-heading{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .detail-name{ font-size:19px; font-weight:900; font-family:'Cairo',inherit; }
+  .detail-avatar{
+    width:46px; height:46px; border-radius:12px; background:var(--primary-tint); color:var(--primary);
+    display:flex; align-items:center; justify-content:center; font-weight:900; font-size:16px;
+    flex-shrink:0; font-family:'Cairo',inherit;
+  }
+
+  /* ---------- Modals ---------- */
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(16,24,40,.55); backdrop-filter:blur(2px);
+    align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal-box{
+    background:#fff; border-radius:var(--radius-lg); padding:22px; max-width:380px; width:100%;
+    box-shadow:0 20px 50px rgba(16,24,40,.25);
+  }
+  .modal-box h3{ margin-bottom:8px; font-size:16px; font-family:'Cairo',inherit; }
+  .modal-box p{ font-size:13px; color:var(--ink-soft); margin-bottom:18px; line-height:1.7; }
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(10px);
+    background:var(--ink); color:#fff; padding:11px 20px; border-radius:24px;
+    font-size:13px; font-weight:600; opacity:0; transition:opacity .25s, transform .25s;
+    z-index:100; pointer-events:none; box-shadow:0 10px 30px rgba(0,0,0,.25);
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ---------- Archive ---------- */
+  .archive-list{ margin-top:10px; display:flex; flex-direction:column; gap:6px; }
+  .archive-item{
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    padding:11px 13px; font-size:13px; box-shadow:var(--shadow-sm);
+  }
+  .archive-item .a-title{ font-weight:800; margin-bottom:4px; color:var(--ink); display:flex; align-items:center; gap:6px; }
+  .archive-item .a-line{ color:var(--ink-soft); font-size:12px; line-height:1.6; }
+  .empty-msg{ text-align:center; color:var(--ink-faint); font-size:13px; padding:30px 10px; }
+  .save-status{ font-size:11px; color:var(--ink-faint); text-align:center; margin-top:8px; }
+
+  svg.i{ display:block; flex-shrink:0; }
+
+  @media print{
+    .no-print{ display:none !important; }
+    .print-only{ display:block !important; }
+    body{ background:#fff !important; padding:0; }
+  }
+  .print-only{ display:none; padding:20px; color:#000; }
+  .print-only table{ width:100%; border-collapse:collapse; margin:14px 0; }
+  .print-only th, .print-only td{ border:1px solid #999; padding:6px; font-size:13px; }
+  .print-only th{ background:#f0f0f0; }
+</style>
+</head>
+<body>
+
+<div class="topbar no-print">
+  <div class="topbar-inner">
+    <div class="brand-mark">
+      <svg class="i" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <div>
+      <div class="brand-title">سجل الحضور والأجرة</div>
+      <div class="brand-sub">دخول · خروج · حساب تلقائي</div>
+    </div>
+    <div class="brand-badge"><span class="dot"></span> حفظ محلي مفعّل</div>
+  </div>
+</div>
+
+<div class="wrap no-print">
+
+  <!-- شاشة قائمة العمال -->
+  <div id="screen-list">
+    <div class="section-title">
+      <svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      العمال
+      <span class="badge" id="workerCountBadge">0</span>
+    </div>
+    <button class="btn-outline btn-sm" style="width:100%;margin-top:10px;" onclick="openStatusModal()">
+      <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      حالة العمال
+    </button>
+    <div class="row" style="margin-top:8px;">
+      <button class="btn-outline btn-sm" style="flex:1;" onclick="exportBackup()">
+        <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        تصدير نسخة احتياطية
+      </button>
+      <button class="btn-outline btn-sm" style="flex:1;" onclick="document.getElementById('importFile').click()">
+        <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        استيراد نسخة احتياطية
+      </button>
+      <input type="file" id="importFile" accept="application/json" style="display:none;" onchange="importBackup(event)">
+    </div>
+    <div class="row" style="margin-top:14px;">
+      <input id="newWorkerInput" placeholder="اسم العامل الجديد" onkeydown="if(event.key==='Enter')addWorker()">
+      <button class="btn-primary" onclick="addWorker()">
+        <svg class="i" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        إضافة
+      </button>
+    </div>
+    <div id="workerList" class="worker-list"></div>
+  </div>
+
+  <!-- شاشة تفاصيل العامل -->
+  <div id="screen-detail" style="display:none;">
+    <button class="back-link" onclick="goBack()">
+      <svg class="i" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      رجوع إلى قائمة العمال
+    </button>
+
+    <div class="detail-heading">
+      <div class="detail-avatar" id="detailAvatar">؟</div>
+      <div>
+        <h2 class="detail-name" id="detailName"></h2>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn-primary btn-sm" onclick="manualSave()">
+        <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        حفظ
+      </button>
+      <button class="btn-outline btn-sm" onclick="openArchiveConfirm()">
+        <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="5" rx="1"/><path d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><line x1="10" y1="13" x2="14" y2="13"/></svg>
+        أرشفة
+      </button>
+      <button class="btn-outline btn-sm" onclick="toggleArchiveView()">
+        <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+        عرض الأرشيف
+      </button>
+      <button class="btn-outline btn-sm" onclick="printCurrent()">
+        <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        طباعة الملخص
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg class="i" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        تسجيل يوم عمل
+      </div>
+      <label class="label">التاريخ</label>
+      <input type="date" id="dateInput" style="margin-bottom:6px;">
+      <div id="dateWarning" style="display:none;color:#B54708;font-size:12px;font-weight:700;margin-bottom:10px;">⚠ يوجد تسجيل بهذا التاريخ — يمكنك تعديله فقط</div>
+      <div class="grid2">
+        <div class="box-in">
+          <label class="label">
+            <svg class="i" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            دخول
+          </label>
+          <input type="time" id="inTimeInput">
+        </div>
+        <div class="box-out">
+          <label class="label">
+            <svg class="i" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            خروج
+          </label>
+          <input type="time" id="outTimeInput">
+        </div>
+      </div>
+      <div class="diff-text" id="diffPreview"></div>
+      <button class="btn-primary btn-full" style="margin-top:14px;" id="addRecordBtn" onclick="addRecord()">تسجيل وإضافة التالي</button>
+    </div>
+
+    <div id="recordsSection">
+      <div class="section-title" id="recordsTitle">
+        <svg class="i" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span id="recordsCountLabel">السجلات</span>
+      </div>
+      <div id="recordsList" class="records"></div>
+    </div>
+
+    <!-- الملخص المالي -->
+    <div class="fin-card">
+      <div class="fin-header">
+        <svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        الملخص المالي
+      </div>
+      <div class="fin-body">
+        <div class="kpi-grid">
+          <div class="kpi-tile always">
+            <span class="kpi-label">مجموع الساعات</span>
+            <span class="kpi-value mono" id="totalHours">0 س 00 د</span>
+          </div>
+          <div class="kpi-tile" id="wageRow">
+            <span class="kpi-label">الأجرة المستحقة</span>
+            <span class="kpi-value mono" id="wageValue">0</span>
+          </div>
+          <div class="kpi-tile" id="netRow">
+            <span class="kpi-label">الإجمالي الواجب دفعه</span>
+            <span class="kpi-value mono accent-net" id="netValue">0</span>
+          </div>
+        </div>
+
+        <label class="label">سعر الوحدة (اختياري) — يُقسم المجموع على 9 ثم يُضرب فيه</label>
+        <input type="number" id="rateInput" placeholder="مثال: 500 دج" oninput="renderDetail(); autoSave();">
+
+        <hr class="fin-divider">
+
+        <div class="fin-section-label">
+          <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          الديون
+        </div>
+        <label class="label">الديون الحالية على العامل</label>
+        <input type="number" id="debtInput" placeholder="مثال: 1000 دج" oninput="renderDetail(); autoSave();">
+
+        <label class="label" style="margin-top:10px;">دفع الأجرة (المبلغ الذي سندفعه للعامل الآن)</label>
+        <input type="number" id="debtPaymentInput" placeholder="مثال: 200 دج" oninput="renderDetail(); autoSave();">
+
+        <div class="fin-row-inline">
+          <span class="fr-label">تاريخ آخر دفع أجرة</span>
+          <span class="fr-value" id="lastPaymentDate">—</span>
+        </div>
+
+        <div class="fin-row-inline" id="newDebtRow" style="display:none;">
+          <span class="fr-label">الديون المتبقية بعد هذا الدفع</span>
+          <span class="fr-value" id="newDebtValue">0</span>
+        </div>
+
+        <button class="btn-primary btn-sm" style="width:100%;margin-top:10px;" onclick="confirmPayment()">
+          <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          تأكيد الدفع
+        </button>
+
+        <button class="btn-outline btn-sm" style="width:100%;margin-top:8px;" onclick="goBack()">
+          <svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          العودة إلى البرنامج
+        </button>
+      </div>
+    </div>
+
+    <div id="archiveSection" style="display:none;margin-top:6px;">
+      <div class="section-title">
+        <svg class="i" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+        الأرشيف
+      </div>
+      <div id="archiveList" class="archive-list"></div>
+    </div>
+
+    <div class="save-status" id="saveStatus"></div>
+  </div>
+</div>
+
+<!-- تأكيد حذف عامل -->
+<div class="modal-overlay no-print" id="deleteModal">
+  <div class="modal-box">
+    <h3>تأكيد الحذف</h3>
+    <p id="deleteMsg"></p>
+    <div class="row">
+      <button class="btn-red" style="flex:1;" onclick="confirmDelete()">حذف نهائيًا</button>
+      <button class="btn-outline" style="flex:1;" onclick="closeDeleteModal()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- تأكيد الأرشفة -->
+<div class="modal-overlay no-print" id="archiveModal">
+  <div class="modal-box">
+    <h3>تأكيد الأرشفة</h3>
+    <p>سيتم حفظ السجلات الحالية (<span id="archiveCount"></span> تسجيل) كفترة مؤرشفة، ثم تُمسح من القائمة النشطة لبدء فترة جديدة. يمكنك مراجعتها لاحقًا من "عرض الأرشيف".</p>
+    <div class="row">
+      <button class="btn-primary" style="flex:1;" onclick="doArchive()">أرشفة الآن</button>
+      <button class="btn-outline" style="flex:1;" onclick="closeArchiveModal()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- حالة العمال -->
+<div class="modal-overlay no-print" id="statusModal">
+  <div class="modal-box" style="max-width:440px;max-height:82vh;overflow-y:auto;">
+    <h3>حالة العمال</h3>
+    <div id="statusList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div class="row" style="margin-top:14px;">
+      <button class="btn-outline" style="flex:1;" onclick="closeStatusModal()">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ملخص للطباعة -->
+<div class="print-only" id="printSummary"></div>
+
+<script>
+var ICON_TRASH = '<svg class="i" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
+var ICON_PENCIL = '<svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+var ICON_CHECK = '<svg class="i" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+var ICON_X = '<svg class="i" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+var ICON_ARCHIVE_SM = '<svg class="i" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="5" rx="1"/><path d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><line x1="10" y1="13" x2="14" y2="13"/></svg>';
+var ICON_PRINT_SM = '<svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>';
+
+var STORAGE_KEY = "attendanceAppDataV1";
+var data = { workers: [], selectedId: null };
+var pendingDeleteId = null;
+var editingId = null;
+var archiveViewOpen = false;
+var expandedArchiveId = null;
+var editingArchiveId = null;
+var editingRecordId = null;
+
+function loadData() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      data = JSON.parse(raw);
+    } else {
+      data = { workers: [{ id: 1, name: "أحمد بن علي", records: [], debt: "", debtPayment: "", rate: "", archives: [] }], selectedId: null };
+    }
+  } catch (e) {
+    data = { workers: [], selectedId: null };
+  }
+  data.workers.forEach(function(w){
+    if (!w.archives) w.archives = [];
+    if (w.debt === undefined) w.debt = "";
+    if (w.rate === undefined) w.rate = "";
+    if (w.debtPayment === undefined) w.debtPayment = "";
+    var d = parseFloat(w.debt);
+    if (!isNaN(d)) {
+      var cleaned = roundDebtNum(d);
+      w.debt = cleaned !== 0 ? String(cleaned) : "";
+    }
+  });
+}
+
+function exportBackup() {
+  try {
+    var payload = JSON.stringify(data, null, 2);
+    var blob = new Blob([payload], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    var stamp = todayISO();
+    a.href = url;
+    a.download = "نسخة-احتياطية-دفتر-الأجرة-" + stamp + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+    showToast("تم تصدير النسخة الاحتياطية ✓");
+  } catch (e) {
+    showToast("تعذر تصدير النسخة الاحتياطية");
+  }
+}
+
+function importBackup(event) {
+  var file = event.target.files && event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function () {
+    try {
+      var parsed = JSON.parse(reader.result);
+      if (!parsed || !Array.isArray(parsed.workers)) {
+        showToast("⚠ الملف غير صالح كنسخة احتياطية");
+        return;
+      }
+      var ok = confirm("سيتم استبدال كل بيانات البرنامج الحالية بمحتوى هذا الملف. هل تريد المتابعة؟");
+      if (!ok) return;
+      data = parsed;
+      data.workers.forEach(function (w) {
+        if (!w.archives) w.archives = [];
+        if (w.debt === undefined) w.debt = "";
+        if (w.rate === undefined) w.rate = "";
+        if (w.debtPayment === undefined) w.debtPayment = "";
+      });
+      persist();
+      renderList();
+      showToast("تم استيراد النسخة الاحتياطية ✓");
+    } catch (e) {
+      showToast("⚠ تعذر قراءة الملف");
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = "";
+}
+
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+var autoSaveTimer = null;
+function autoSave() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(function () {
+    var ok = persist();
+    var el = document.getElementById("saveStatus");
+    if (el) el.textContent = ok ? "تم الحفظ التلقائي · " + nowTimeLabel() : "تعذر الحفظ التلقائي";
+  }, 500);
+}
+
+function manualSave() {
+  var ok = persist();
+  showToast(ok ? "تم الحفظ ✓" : "تعذر الحفظ");
+  var el = document.getElementById("saveStatus");
+  if (el) el.textContent = ok ? "تم الحفظ يدويًا · " + nowTimeLabel() : "تعذر الحفظ";
+}
+
+function nowTimeLabel() {
+  var d = new Date();
+  return d.toLocaleTimeString("ar", { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+function showToast(msg) {
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show";
+  setTimeout(function () { t.className = "toast"; }, 1800);
+}
+
+function todayISO() {
+  var d = new Date();
+  var off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
+}
+
+function diffHours(inT, outT) {
+  if (!inT || !outT) return 0;
+  var pi = inT.split(":"), po = outT.split(":");
+  var ih = parseInt(pi[0], 10), im = parseInt(pi[1], 10);
+  var oh = parseInt(po[0], 10), om = parseInt(po[1], 10);
+  var mins = (oh * 60 + om) - (ih * 60 + im);
+  if (mins < 0) mins += 24 * 60;
+  return mins / 60;
+}
+
+function fmtHours(h) {
+  var hh = Math.floor(h);
+  var mm = Math.round((h - hh) * 60);
+  return hh + " س " + (mm < 10 ? "0" + mm : mm) + " د";
+}
+
+function fmtMoney(n) {
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  return String(Math.round(n)) + " دج";
+}
+
+function fmtDebt(n) {
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  var r = Math.round(n * 100) / 100;
+  if (Math.abs(r) < 1) r = 0;
+  return r.toFixed(2) + " دج";
+}
+
+function roundDebtNum(n) {
+  var r = Math.round(n * 100) / 100;
+  if (Math.abs(r) < 1) r = 0;
+  return r;
+}
+
+function initials(name) {
+  var parts = name.trim().split(/\s+/);
+  return parts[0] ? parts[0].charAt(0) : "؟";
+}
+
+function getWorker(id) {
+  for (var i = 0; i < data.workers.length; i++) if (data.workers[i].id === id) return data.workers[i];
+  return null;
+}
+
+function getLastPaymentDate(w) {
+  if (!w || !w.archives) return null;
+  for (var i = 0; i < w.archives.length; i++) {
+    if (w.archives[i].debtPayment) return w.archives[i].archivedAt;
+  }
+  return null;
+}
+
+function addWorker() {
+  var input = document.getElementById("newWorkerInput");
+  var name = input.value.trim();
+  if (!name) return;
+  var w = { id: Date.now(), name: name, records: [], debt: "", debtPayment: "", rate: "", archives: [] };
+  data.workers.push(w);
+  input.value = "";
+  data.selectedId = w.id;
+  renderList();
+  autoSave();
+  openDetail(w.id);
+}
+
+function requestEditName(id) {
+  editingId = id;
+  renderList();
+}
+
+function cancelEditName() {
+  editingId = null;
+  renderList();
+}
+
+function saveEditName(id) {
+  var input = document.getElementById("editInput_" + id);
+  var val = input.value.trim();
+  if (val) {
+    var w = getWorker(id);
+    w.name = val;
+    autoSave();
+  }
+  editingId = null;
+  renderList();
+}
+
+function requestDelete(id) {
+  pendingDeleteId = id;
+  var w = getWorker(id);
+  document.getElementById("deleteMsg").textContent = "هل تريد فعلاً حذف العامل «" + w.name + "»؟ سيتم حذف جميع سجلاته وأرشيفه ولا يمكن التراجع عن ذلك.";
+  document.getElementById("deleteModal").className = "modal-overlay no-print show";
+}
+
+function closeDeleteModal() {
+  pendingDeleteId = null;
+  document.getElementById("deleteModal").className = "modal-overlay no-print";
+}
+
+function confirmDelete() {
+  data.workers = data.workers.filter(function (w) { return w.id !== pendingDeleteId; });
+  if (data.selectedId === pendingDeleteId) data.selectedId = null;
+  pendingDeleteId = null;
+  document.getElementById("deleteModal").className = "modal-overlay no-print";
+  autoSave();
+  renderList();
+  if (!data.selectedId) goBack();
+}
+
+function renderList() {
+  var container = document.getElementById("workerList");
+  container.innerHTML = "";
+  var badge = document.getElementById("workerCountBadge");
+  if (badge) badge.textContent = data.workers.length;
+  if (data.workers.length === 0) {
+    container.innerHTML = '<div class="empty-msg">لا يوجد عمال بعد. أضف اسمًا للبدء.</div>';
+    return;
+  }
+  data.workers.forEach(function (w) {
+    var total = w.records.reduce(function (s, r) { return s + r.hours; }, 0);
+    var item = document.createElement("div");
+    item.className = "worker-item";
+    if (editingId === w.id) {
+      item.innerHTML =
+        '<div class="row" style="flex:1;">' +
+          '<input id="editInput_' + w.id + '" value="' + escapeHtml(w.name) + '">' +
+          '<button class="btn-green btn-sm" onclick="saveEditName(' + w.id + ')">' + ICON_CHECK + '</button>' +
+          '<button class="btn-outline btn-sm" onclick="cancelEditName()">' + ICON_X + '</button>' +
+        '</div>';
+    } else {
+      item.innerHTML =
+        '<div class="worker-row-flex">' +
+          '<div class="avatar">' + escapeHtml(initials(w.name)) + '</div>' +
+          '<button class="name-btn" onclick="openDetail(' + w.id + ')">' +
+            '<span>' + escapeHtml(w.name) + '</span>' +
+            '<span class="meta">' + w.records.length + ' تسجيل · ' + fmtHours(total) + '</span>' +
+          '</button>' +
+        '</div>' +
+        '<button class="icon-btn" onclick="requestEditName(' + w.id + ')" title="تعديل">' + ICON_PENCIL + '</button>' +
+        '<button class="icon-btn danger" onclick="requestDelete(' + w.id + ')" title="حذف">' + ICON_TRASH + '</button>';
+    }
+    container.appendChild(item);
+  });
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function openDetail(id) {
+  data.selectedId = id;
+  var w = getWorker(id);
+  document.getElementById("screen-list").style.display = "none";
+  document.getElementById("screen-detail").style.display = "block";
+  document.getElementById("dateInput").value = todayISO();
+  document.getElementById("inTimeInput").value = "";
+  document.getElementById("outTimeInput").value = "";
+  document.getElementById("debtInput").value = (w && w.debt) || "";
+  document.getElementById("debtPaymentInput").value = (w && w.debtPayment) || "";
+  document.getElementById("rateInput").value = (w && w.rate) || "";
+  archiveViewOpen = false;
+  editingRecordId = null;
+  document.getElementById("archiveSection").style.display = "none";
+  checkDateForExisting();
+  renderDetail();
+  autoSave();
+}
+
+function goBack() {
+  data.selectedId = null;
+  document.getElementById("screen-detail").style.display = "none";
+  document.getElementById("screen-list").style.display = "block";
+  renderList();
+  autoSave();
+}
+
+function checkDateForExisting() {
+  var w = getWorker(data.selectedId);
+  if (!w) return;
+  var date = document.getElementById("dateInput").value;
+  var existing = w.records.find(function (r) { return r.date === date; });
+  var warning = document.getElementById("dateWarning");
+  var btn = document.getElementById("addRecordBtn");
+  if (existing) {
+    editingRecordId = existing.id;
+    document.getElementById("inTimeInput").value = existing.inTime;
+    document.getElementById("outTimeInput").value = existing.outTime;
+    warning.style.display = "block";
+    btn.textContent = "تحديث التسجيل";
+  } else {
+    editingRecordId = null;
+    document.getElementById("inTimeInput").value = "";
+    document.getElementById("outTimeInput").value = "";
+    warning.style.display = "none";
+    btn.textContent = "تسجيل وإضافة التالي";
+  }
+}
+
+function addRecord() {
+  var w = getWorker(data.selectedId);
+  if (!w) return;
+  var date = document.getElementById("dateInput").value;
+  var inT = document.getElementById("inTimeInput").value;
+  var outT = document.getElementById("outTimeInput").value;
+  if (!date || !inT || !outT) return;
+  if (date > todayISO()) {
+    showToast("⚠ لا يمكنك التسجيل في يوم لاحق");
+    return;
+  }
+  var h = diffHours(inT, outT);
+
+  if (editingRecordId !== null) {
+    var rec = w.records.find(function (r) { return r.id === editingRecordId; });
+    if (rec) {
+      rec.inTime = inT;
+      rec.outTime = outT;
+      rec.hours = h;
+    }
+    editingRecordId = null;
+    document.getElementById("dateWarning").style.display = "none";
+    document.getElementById("addRecordBtn").textContent = "تسجيل وإضافة التالي";
+    document.getElementById("inTimeInput").value = "";
+    document.getElementById("outTimeInput").value = "";
+    showToast("تم تحديث التسجيل ✓");
+    renderDetail();
+    autoSave();
+    return;
+  }
+
+  var dup = w.records.find(function (r) { return r.date === date; });
+  if (dup) {
+    showToast("⚠ يوجد تسجيل بهذا التاريخ بالفعل — عدّله بدل إضافة تسجيل جديد");
+    checkDateForExisting();
+    return;
+  }
+
+  w.records.unshift({ id: Date.now(), date: date, inTime: inT, outTime: outT, hours: h });
+  document.getElementById("inTimeInput").value = "";
+  document.getElementById("outTimeInput").value = "";
+
+  var parts = date.split("-");
+  var next = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10) + 1);
+  var nextISO = next.getFullYear() + "-" + String(next.getMonth() + 1).padStart(2, "0") + "-" + String(next.getDate()).padStart(2, "0");
+  document.getElementById("dateInput").value = nextISO > todayISO() ? todayISO() : nextISO;
+  checkDateForExisting();
+
+  renderDetail();
+  autoSave();
+}
+
+function removeRecord(rid) {
+  var w = getWorker(data.selectedId);
+  if (!w) return;
+  w.records = w.records.filter(function (r) { return r.id !== rid; });
+  if (editingRecordId === rid) {
+    editingRecordId = null;
+    checkDateForExisting();
+  }
+  renderDetail();
+  autoSave();
+}
+
+function openArchiveConfirm() {
+  var w = getWorker(data.selectedId);
+  if (!w || w.records.length === 0) { showToast("لا توجد سجلات لأرشفتها"); return; }
+  document.getElementById("archiveCount").textContent = w.records.length;
+  document.getElementById("archiveModal").className = "modal-overlay no-print show";
+}
+
+function checkAutoArchive() {
+  var w = getWorker(data.selectedId);
+  if (!w || w.records.length === 0) return;
+  var paymentStr = document.getElementById("debtPaymentInput").value;
+  if (paymentStr === "") return;
+  var rate = parseFloat(document.getElementById("rateInput").value);
+  var debt = parseFloat(document.getElementById("debtInput").value);
+  var payment = parseFloat(paymentStr);
+  if (isNaN(payment)) return;
+  var total = w.records.reduce(function (s, r) { return s + r.hours; }, 0);
+  var wageVal = !isNaN(rate) ? (total / 9) * rate : 0;
+  var debtNum = isNaN(debt) ? 0 : debt;
+  var totalDue = wageVal - debtNum;
+  var newDebt = payment - totalDue;
+  if (Math.abs(newDebt) < 1) {
+    showToast("تم السداد بالكامل — اضغط تأكيد الدفع ✓");
+  }
+}
+
+function closeArchiveModal() {
+  document.getElementById("archiveModal").className = "modal-overlay no-print";
+}
+
+function openStatusModal() {
+  renderStatusList();
+  document.getElementById("statusModal").className = "modal-overlay no-print show";
+}
+
+function closeStatusModal() {
+  document.getElementById("statusModal").className = "modal-overlay no-print";
+}
+
+function renderStatusList() {
+  var container = document.getElementById("statusList");
+  container.innerHTML = "";
+  if (data.workers.length === 0) {
+    container.innerHTML = '<div class="empty-msg">لا يوجد عمال بعد.</div>';
+    return;
+  }
+  data.workers.forEach(function (w) {
+    var currentHours = w.records.reduce(function (s, r) { return s + r.hours; }, 0);
+    var rate = parseFloat(w.rate);
+    var currentWage = !isNaN(rate) ? (currentHours / 9) * rate : null;
+    var debtVal = parseFloat(w.debt);
+    var debtNum = isNaN(debtVal) ? 0 : debtVal;
+    var lastWage = (w.archives && w.archives.length && w.archives[0].wage !== null) ? w.archives[0].wage : null;
+    var lastPayDate = getLastPaymentDate(w);
+
+    var div = document.createElement("div");
+    div.className = "archive-item";
+    var html = '<div class="a-title">' + escapeHtml(w.name) + '</div>';
+    html += '<div class="a-line">';
+    html += 'الديون الباقية: <b>' + fmtDebt(debtNum) + '</b><br>';
+    html += 'آخر أجرة في الأرشيف: ' + fmtMoney(lastWage) + '<br>';
+    html += 'تاريخ آخر دفع أجرة: ' + (lastPayDate || 'لا يوجد') + '<br>';
+    html += 'الساعات الحالية: ' + fmtHours(currentHours) + '<br>';
+    html += 'الأجرة الحالية السارية قبل الدفع: ' + fmtMoney(currentWage);
+    html += '</div>';
+    div.innerHTML = html;
+    container.appendChild(div);
+  });
+}
+
+function confirmPayment() {
+  var w = getWorker(data.selectedId);
+  if (!w || w.records.length === 0) { showToast("لا توجد سجلات لأرشفتها"); return; }
+  doArchive();
+  goBack();
+}
+
+function doArchive() {
+  var w = getWorker(data.selectedId);
+  if (!w) return;
+  var total = w.records.reduce(function (s, r) { return s + r.hours; }, 0);
+  var rate = parseFloat(document.getElementById("rateInput").value);
+  var debt = parseFloat(document.getElementById("debtInput").value);
+  var payment = parseFloat(document.getElementById("debtPaymentInput").value);
+  var debtNum = isNaN(debt) ? 0 : debt;
+  var paymentNum = isNaN(payment) ? 0 : payment;
+  var wage = !isNaN(rate) ? (total / 9) * rate : null;
+  var wageVal = wage !== null ? wage : 0;
+  var totalDue = wageVal - debtNum;
+  var newDebt = roundDebtNum(paymentNum - totalDue);
+  var net = wage !== null ? totalDue : null;
+  var d = new Date();
+  var archive = {
+    id: Date.now(),
+    archivedAt: d.toLocaleDateString("ar") + " " + d.toLocaleTimeString("ar", {hour:"2-digit",minute:"2-digit",hour12:false}),
+    count: w.records.length,
+    totalHours: total,
+    rate: isNaN(rate) ? null : rate,
+    wage: wage,
+    debtBefore: debtNum,
+    debtPayment: paymentNum,
+    debtAfter: newDebt,
+    net: net,
+    records: w.records
+  };
+  w.archives.unshift(archive);
+  w.records = [];
+  w.debt = newDebt !== 0 ? String(newDebt) : "";
+  w.debtPayment = "";
+  document.getElementById("debtInput").value = w.debt;
+  document.getElementById("debtPaymentInput").value = "";
+  closeArchiveModal();
+  renderDetail();
+  autoSave();
+  showToast("تمت الأرشفة ✓");
+}
+
+function toggleArchiveView() {
+  archiveViewOpen = !archiveViewOpen;
+  document.getElementById("archiveSection").style.display = archiveViewOpen ? "block" : "none";
+  renderArchiveList();
+}
+
+function renderArchiveList() {
+  var w = getWorker(data.selectedId);
+  var container = document.getElementById("archiveList");
+  container.innerHTML = "";
+  if (!w || w.archives.length === 0) {
+    container.innerHTML = '<div class="empty-msg">لا يوجد أرشيف بعد.</div>';
+    return;
+  }
+  w.archives.forEach(function (a, idx) {
+    var div = document.createElement("div");
+    div.className = "archive-item";
+    var line = a.count + " تسجيل · " + fmtHours(a.totalHours);
+    if (a.wage !== null) line += " · أجرة: " + fmtMoney(a.wage);
+    if (a.debtPayment) line += " · دفع الأجرة: " + fmtMoney(a.debtPayment);
+    if (a.net !== null) line += " · الإجمالي الواجب دفعه: " + fmtMoney(a.net);
+    if (a.debtAfter !== undefined) line += " · ديون متبقية: " + fmtDebt(a.debtAfter);
+
+    var isEditing = editingArchiveId === a.id;
+    var isExpanded = expandedArchiveId === a.id || isEditing;
+
+    var html = '<div class="a-title">' + ICON_ARCHIVE_SM + ' أُرشفت في ' + a.archivedAt + '</div>';
+    html += '<div class="a-line">' + line + '</div>';
+    html += '<div style="display:flex;gap:6px;margin-top:8px;">';
+    html += '<button class="btn-outline btn-sm" style="flex:1;" onclick="toggleArchiveDetail(' + a.id + ')">' + (isExpanded ? "إخفاء التفاصيل" : "الاطلاع على التفاصيل") + '</button>';
+    if (!isEditing) {
+      html += '<button class="icon-btn" title="تعديل" onclick="startEditArchive(' + a.id + ')">' + ICON_PENCIL + '</button>';
+    }
+    html += '<button class="icon-btn" title="طباعة" onclick="printArchiveEntry(' + a.id + ')">' + ICON_PRINT_SM + '</button>';
+    html += '</div>';
+
+    if (isExpanded) {
+      html += '<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px;">';
+      if (a.records && a.records.length) {
+        html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+        html += '<thead><tr><th style="text-align:right;padding:4px;">التاريخ</th><th style="padding:4px;">دخول</th><th style="padding:4px;">خروج</th><th style="padding:4px;">المدة</th>' + (isEditing ? '<th></th>' : '') + '</tr></thead><tbody>';
+        a.records.forEach(function (r) {
+          html += '<tr><td style="padding:4px;">' + r.date + '</td><td style="text-align:center;padding:4px;">' + r.inTime + '</td><td style="text-align:center;padding:4px;">' + r.outTime + '</td><td style="text-align:center;padding:4px;">' + fmtHours(r.hours) + '</td>';
+          if (isEditing) {
+            html += '<td style="padding:4px;"><button class="icon-btn danger" onclick="removeArchiveRecord(' + a.id + ',' + r.id + ')">' + ICON_TRASH + '</button></td>';
+          }
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+      } else {
+        html += '<div class="empty-msg" style="padding:10px;">لا توجد سجلات.</div>';
+      }
+
+      if (isEditing) {
+        html += '<div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">';
+        html += '<label class="label">السعر اليومي</label><input type="number" id="editRate_' + a.id + '" value="' + (a.rate !== null ? a.rate : "") + '">';
+        html += '<label class="label">الديون قبل هذه العملية</label><input type="number" id="editDebtBefore_' + a.id + '" value="' + a.debtBefore + '">';
+        html += '<label class="label">دفع الأجرة (المدفوع للعامل)</label><input type="number" id="editDebtPayment_' + a.id + '" value="' + a.debtPayment + '">';
+        html += '<div style="display:flex;gap:6px;margin-top:4px;">';
+        html += '<button class="btn-primary btn-sm" style="flex:1;" onclick="saveEditArchive(' + a.id + ')">' + ICON_CHECK + ' حفظ التعديل</button>';
+        html += '<button class="btn-outline btn-sm" style="flex:1;" onclick="cancelEditArchive()">' + ICON_X + ' إلغاء</button>';
+        html += '</div></div>';
+      } else {
+        html += '<div class="a-line" style="margin-top:8px;">';
+        if (a.wage !== null) html += 'الأجرة المستحقة: ' + fmtMoney(a.wage) + '<br>';
+        html += 'الديون قبل هذه العملية: ' + fmtDebt(a.debtBefore) + '<br>';
+        if (a.net !== null) html += 'الإجمالي الواجب دفعه: ' + fmtMoney(a.net) + '<br>';
+        html += 'دفع الأجرة: ' + fmtMoney(a.debtPayment) + '<br>';
+        html += 'الديون المتبقية: ' + fmtDebt(a.debtAfter);
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+
+    div.innerHTML = html;
+    container.appendChild(div);
+  });
+}
+
+function toggleArchiveDetail(id) {
+  if (editingArchiveId === id) return;
+  expandedArchiveId = expandedArchiveId === id ? null : id;
+  renderArchiveList();
+}
+
+function startEditArchive(id) {
+  editingArchiveId = id;
+  expandedArchiveId = id;
+  renderArchiveList();
+}
+
+function cancelEditArchive() {
+  editingArchiveId = null;
+  renderArchiveList();
+}
+
+function removeArchiveRecord(archiveId, recordId) {
+  var w = getWorker(data.selectedId);
+  if (!w) return;
+  var a = w.archives.find(function (x) { return x.id === archiveId; });
+  if (!a) return;
+  a.records = a.records.filter(function (r) { return r.id !== recordId; });
+  a.count = a.records.length;
+  a.totalHours = a.records.reduce(function (s, r) { return s + r.hours; }, 0);
+  renderArchiveList();
+  autoSave();
+}
+
+function saveEditArchive(id) {
+  var w = getWorker(data.selectedId);
+  if (!w) return;
+  var a = w.archives.find(function (x) { return x.id === id; });
+  if (!a) return;
+  var rateStr = document.getElementById("editRate_" + id).value;
+  var debtBeforeStr = document.getElementById("editDebtBefore_" + id).value;
+  var debtPaymentStr = document.getElementById("editDebtPayment_" + id).value;
+  var rate = parseFloat(rateStr);
+  var debtBefore = parseFloat(debtBeforeStr);
+  var debtPayment = parseFloat(debtPaymentStr);
+  var debtNum = isNaN(debtBefore) ? 0 : debtBefore;
+  var paymentNum = isNaN(debtPayment) ? 0 : debtPayment;
+  var total = a.records.reduce(function (s, r) { return s + r.hours; }, 0);
+  var wage = !isNaN(rate) ? (total / 9) * rate : null;
+  var wageVal = wage !== null ? wage : 0;
+  var totalDue = wageVal - debtNum;
+  var newDebt = roundDebtNum(paymentNum - totalDue);
+
+  a.rate = isNaN(rate) ? null : rate;
+  a.totalHours = total;
+  a.count = a.records.length;
+  a.wage = wage;
+  a.debtBefore = debtNum;
+  a.debtPayment = paymentNum;
+  a.debtAfter = newDebt;
+  a.net = wage !== null ? totalDue : null;
+
+  if (w.archives[0] && w.archives[0].id === a.id) {
+    w.debt = newDebt !== 0 ? String(newDebt) : "";
+    document.getElementById("debtInput").value = w.debt;
+  }
+
+  editingArchiveId = null;
+  renderArchiveList();
+  renderDetail();
+  autoSave();
+  showToast("تم حفظ التعديل ✓");
+}
+
+function triggerPrint() {
+  // small delay so mobile browsers finish painting the freshly-injected
+  // print content before the print snapshot is taken
+  setTimeout(function () { window.print(); }, 80);
+}
+
+function printCurrent() {
+  renderDetail();
+  triggerPrint();
+}
+
+function printArchiveEntry(id) {
+  var w = getWorker(data.selectedId);
+  if (!w) return;
+  var a = w.archives.find(function (x) { return x.id === id; });
+  if (!a) return;
+  var wageVal = a.wage !== null ? a.wage : 0;
+  var totalDue = wageVal - a.debtBefore;
+  buildPrintSummary(w, a.totalHours, a.wage, a.debtBefore, a.debtPayment, a.debtAfter, totalDue, a.records);
+  triggerPrint();
+}
+
+function renderDetail() {
+  var w = getWorker(data.selectedId);
+  if (!w) return;
+  document.getElementById("detailName").textContent = w.name;
+  document.getElementById("detailAvatar").textContent = initials(w.name);
+  var lastPay = getLastPaymentDate(w);
+  document.getElementById("lastPaymentDate").textContent = lastPay || "لا يوجد";
+
+  var inT = document.getElementById("inTimeInput").value;
+  var outT = document.getElementById("outTimeInput").value;
+  var diffEl = document.getElementById("diffPreview");
+  if (inT && outT) {
+    diffEl.innerHTML = "الفرق: <b>" + fmtHours(diffHours(inT, outT)) + "</b>";
+  } else {
+    diffEl.innerHTML = "";
+  }
+
+  document.getElementById("recordsCountLabel").textContent = "السجلات (" + w.records.length + ")";
+  var list = document.getElementById("recordsList");
+  list.innerHTML = "";
+  if (w.records.length === 0) {
+    list.innerHTML = '<div class="empty-msg">لا توجد سجلات لهذا اليوم بعد.</div>';
+  }
+  w.records.forEach(function (r) {
+    var row = document.createElement("div");
+    row.className = "rec-row";
+    row.innerHTML =
+      '<span class="t-date">' + r.date + '</span>' +
+      '<span><span class="t-in">' + r.inTime + '</span> → <span class="t-out">' + r.outTime + '</span></span>' +
+      '<span class="t-hours">' + fmtHours(r.hours) + '</span>' +
+      '<button class="icon-btn danger" onclick="removeRecord(' + r.id + ')">' + ICON_TRASH + '</button>';
+    list.appendChild(row);
+  });
+
+  var total = w.records.reduce(function (s, r) { return s + r.hours; }, 0);
+  document.getElementById("totalHours").textContent = fmtHours(total);
+
+  w.rate = document.getElementById("rateInput").value;
+  w.debt = document.getElementById("debtInput").value;
+  w.debtPayment = document.getElementById("debtPaymentInput").value;
+
+  var rate = parseFloat(w.rate);
+  var wage = !isNaN(rate) ? (total / 9) * rate : null;
+  var wageRow = document.getElementById("wageRow");
+  if (wage !== null) {
+    wageRow.style.display = "flex";
+    document.getElementById("wageValue").textContent = fmtMoney(wage);
+  } else {
+    wageRow.style.display = "none";
+  }
+
+  var debtVal = parseFloat(w.debt);
+  var debtNum = isNaN(debtVal) ? 0 : debtVal;
+  var paymentVal = parseFloat(w.debtPayment);
+  var paymentNum = isNaN(paymentVal) ? 0 : paymentVal;
+  var wageVal = wage !== null ? wage : 0;
+  var totalDue = wageVal - debtNum;
+  var newDebt = paymentNum - totalDue;
+
+  var netRow = document.getElementById("netRow");
+  if (wage !== null || debtNum !== 0) {
+    netRow.style.display = "flex";
+    document.getElementById("netValue").textContent = fmtMoney(totalDue);
+  } else {
+    netRow.style.display = "none";
+  }
+
+  var newDebtRow = document.getElementById("newDebtRow");
+  if (w.debt !== "" || w.debtPayment !== "") {
+    newDebtRow.style.display = "flex";
+    document.getElementById("newDebtValue").textContent = fmtDebt(newDebt);
+  } else {
+    newDebtRow.style.display = "none";
+  }
+
+  if (archiveViewOpen) renderArchiveList();
+
+  buildPrintSummary(w, total, wage, debtNum, paymentNum, newDebt, totalDue);
+}
+
+function buildPrintSummary(w, total, wage, debtNum, paymentNum, newDebt, totalDue, records) {
+  var recs = records || w.records;
+  var html = '<h1 style="font-size:20px;font-weight:900;margin-bottom:4px;">ملخص سجل الحضور</h1>';
+  html += '<p style="font-size:14px;margin-bottom:16px;">العامل: ' + escapeHtml(w.name) + '</p>';
+  html += '<p style="font-size:13px;color:#555;margin-top:-10px;margin-bottom:14px;">تاريخ آخر دفع أجرة: ' + (getLastPaymentDate(w) || 'لا يوجد') + '</p>';
+  html += '<table><thead><tr><th>التاريخ</th><th>دخول</th><th>خروج</th><th>المدة</th></tr></thead><tbody>';
+  recs.forEach(function (r) {
+    html += '<tr><td>' + r.date + '</td><td style="text-align:center;">' + r.inTime + '</td><td style="text-align:center;">' + r.outTime + '</td><td style="text-align:center;">' + fmtHours(r.hours) + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  html += '<p style="font-size:14px;">عدد العمليات: ' + recs.length + '</p>';
+  html += '<p style="font-size:14px;">مجموع الساعات: ' + fmtHours(total) + '</p>';
+  if (wage !== null) html += '<p style="font-size:14px;">الأجرة المستحقة: ' + fmtMoney(wage) + '</p>';
+  html += '<p style="font-size:14px;">الديون الحالية: ' + fmtDebt(debtNum) + '</p>';
+  if (wage !== null || debtNum !== 0) html += '<p style="font-size:16px;font-weight:900;margin-top:10px;">الإجمالي الواجب دفعه: ' + fmtMoney(totalDue) + '</p>';
+  html += '<p style="font-size:14px;margin-top:6px;">دفع الأجرة (المدفوع للعامل الآن): ' + fmtMoney(paymentNum) + '</p>';
+  if (Math.abs(newDebt) < 1) {
+    html += '<p style="font-size:15px;font-weight:900;margin-top:8px;color:#12805C;">تم السداد بالكامل — لا توجد ديون متبقية ✓</p>';
+  } else {
+    html += '<p style="font-size:15px;font-weight:900;margin-top:8px;color:#B54708;">⚠ ديون متبقية: ' + fmtDebt(newDebt) + '</p>';
+  }
+  document.getElementById("printSummary").innerHTML = html;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  loadData();
+  renderList();
+  document.getElementById("dateInput").value = todayISO();
+  document.getElementById("inTimeInput").addEventListener("change", function(){ renderDetail(); autoSave(); });
+  document.getElementById("outTimeInput").addEventListener("change", function(){ renderDetail(); autoSave(); });
+  document.getElementById("dateInput").addEventListener("change", function () { checkDateForExisting(); autoSave(); });
+  document.getElementById("debtPaymentInput").addEventListener("change", checkAutoArchive);
+  window.addEventListener("beforeunload", persist);
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js").catch(function () {});
+  }
+});
+</script>
+
+</body>
+</html>
